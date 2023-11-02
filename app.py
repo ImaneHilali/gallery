@@ -4,6 +4,8 @@ from sklearn.cluster import KMeans
 import requests
 import cv2
 import json
+import base64
+import numpy as np
   
 
 app = Flask(__name__)
@@ -67,12 +69,16 @@ combined_data = {
 # POST method to process image data
 @app.route('/api/process_image_data', methods=['POST'])
 def process_image_data():
-    # Retrieve image path from the request
     data = request.get_json()
-    image_path = data.get('image_path')
+    image_base64 = data.get('image_base64')
 
-    # Read the image using OpenCV
-    image = cv2.imread(image_path)
+    if image_base64:
+        # Decode the base64 string to get the image data
+        image_data = base64.b64decode(image_base64)
+
+        # Convert image data to a numpy array
+        nparr = np.frombuffer(image_data, np.uint8)
+        image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
     # Calculate histograms for each color channel (BGR)
     hist_b = cv2.calcHist([image], [0], None, [256], [0, 256])
